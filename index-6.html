@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nasza randka 💗</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap');
+
+*{box-sizing:border-box}
+body{
+  margin:0; min-height:100vh; overflow:hidden;
+  font-family:"DM Sans",sans-serif; color:#5d3d48;
+  background:
+    radial-gradient(circle at 15% 20%,rgba(255,255,255,.75),transparent 28%),
+    radial-gradient(circle at 85% 80%,rgba(255,255,255,.65),transparent 30%),
+    linear-gradient(135deg,#f9dfe7,#f7e9e4 50%,#f6dce7);
+}
+body:before,body:after{
+  content:"♡"; position:fixed; font-size:150px; opacity:.08; pointer-events:none;
+}
+body:before{left:-30px;top:15px;transform:rotate(-15deg)}
+body:after{right:-25px;bottom:-10px;transform:rotate(18deg)}
+
+.app{min-height:100vh;display:grid;place-items:center;padding:22px}
+.card{
+  width:min(470px,94vw); max-height:94vh; overflow:auto;
+  background:rgba(255,255,255,.78); backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.9);
+  border-radius:28px; padding:30px 28px;
+  box-shadow:0 22px 70px rgba(125,70,88,.15);
+  animation:cardIn .5s ease both;
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(15px) scale(.98)}to{opacity:1;transform:none}}
+h1{
+  font-family:"Playfair Display",serif; font-size:32px; line-height:1.15;
+  text-align:center; margin:4px 0 10px; color:#a44867;
+}
+.subtitle{text-align:center;color:#8b6872;font-size:14px;margin:0 0 24px}
+.progress{height:5px;background:#f1d9e0;border-radius:99px;margin-bottom:24px;overflow:hidden}
+.progress span{display:block;height:100%;background:#d9577e;border-radius:99px;transition:width .35s ease}
+label{display:block;font-size:13px;font-weight:600;margin:18px 0 8px}
+button,input{
+  font:inherit;
+}
+button{cursor:pointer;border:0}
+.primary{
+  width:100%; padding:14px 18px; border-radius:999px;
+  background:#d9577e;color:white;font-weight:700;
+  box-shadow:0 8px 22px rgba(217,87,126,.25);
+  transition:.2s;
+}
+.primary:hover{transform:translateY(-2px)}
+.secondary{
+  width:100%;padding:13px 18px;border-radius:999px;
+  background:#fff;border:1px solid #efd4dc;color:#a44867;font-weight:600;
+}
+.actions{display:grid;gap:11px;margin-top:24px}
+.no-btn{
+  position:fixed; width:72px; padding:7px 0; border-radius:20px;
+  background:transparent;color:#76545f;font-size:11px;z-index:10;
+}
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice{
+  padding:18px 10px;border-radius:18px;background:rgba(255,255,255,.62);
+  border:1px solid #efdde2; color:#644650; transition:.2s;
+}
+.choice:hover{transform:translateY(-2px);border-color:#df8ea7}
+.choice.selected{background:#fbe1e8;border-color:#d9577e;box-shadow:inset 0 0 0 2px rgba(217,87,126,.08)}
+.emoji{font-size:27px;display:block;margin-bottom:7px}
+.calendar{
+  border:1px solid #eddde2;border-radius:18px;background:rgba(255,255,255,.58);padding:14px;
+}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-weight:700}
+.cal-head button{background:transparent;color:#a44867;font-size:18px;padding:3px 8px}
+.week,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;text-align:center}
+.week{font-size:10px;color:#9c7b85;margin-bottom:5px}
+.day{height:36px;border-radius:50%;background:transparent;color:#694c56}
+.day:not(:disabled):hover{background:#f7dce4}
+.day.selected{background:#d9577e;color:white;font-weight:700}
+.day:disabled{color:#cdbfc3;cursor:not-allowed}
+.time-input{
+  width:100%;padding:14px 16px;border-radius:15px;
+  border:1px solid #ead6dc;background:rgba(255,255,255,.7);color:#644650;
+  outline:none;
+}
+.time-input:focus{border-color:#d9577e;box-shadow:0 0 0 3px rgba(217,87,126,.1)}
+.summary{
+  background:rgba(255,255,255,.55);border-radius:20px;padding:17px;margin:20px 0;
+}
+.row{display:flex;gap:11px;align-items:center;padding:8px 0;font-size:14px}
+.row span:first-child{font-size:19px;width:25px;text-align:center}
+.small{font-size:12px;color:#997781;text-align:center}
+.flower-input{margin-top:5px}
+.success{text-align:center}
+.success h1{font-size:42px}
+.flower-big{font-size:46px;margin:10px}
+.heart{position:fixed;pointer-events:none;animation:float 3s ease-out forwards;font-size:18px}
+@keyframes float{0%{opacity:0;transform:translateY(20px) scale(.7)}20%{opacity:.8}100%{opacity:0;transform:translateY(-170px) rotate(20deg)}}
+@media(max-width:420px){.card{padding:25px 20px}h1{font-size:28px}.choice{padding:15px 8px}}
+</style>
+</head>
+<body>
+<div id="hearts"></div>
+<main class="app"><section class="card" id="card"></section></main>
+
+<script>
+const state = {
+  step: 1, date: null, time: "", category: null, choice: null, flowers: ""
+};
+
+const months = ["Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec","Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"];
+const food = [
+  ["🍝","Makaron"],["🍕","Pizza"],["🍟","McDonald's"],["🍣","Sushi"],["🍔","Burgery"]
+];
+const fun = [
+  ["🎬","Kino"],["🎳","Kręgle"],["🔐","Escape room"],["🚲","Pójście na rower"],
+  ["👩‍🍳","Wspólne gotowanie"],["🍦","Spacer + lody"]
+];
+
+function progress(){
+  return state.step === 1 ? 16.6 : state.step === 2 ? 33.3 : state.step === 3 ? 50 : state.step === 4 ? 66.6 : state.step === 5 ? 83.3 : 100;
+}
+function render(){
+  const c=document.getElementById("card");
+  c.innerHTML=`<div class="progress"><span style="width:${progress()}%"></span></div>`;
+  if(state.step===1) renderStart(c);
+  if(state.step===2) renderDate(c);
+  if(state.step===3) renderTime(c);
+  if(state.step===4) renderCategory(c);
+  if(state.step===5) renderChoice(c);
+  if(state.step===6) renderFlowers(c);
+  if(state.step===7) renderFinal(c);
+}
+function renderStart(c){
+  c.innerHTML+=`
+    <h1>🌸 Pójdziesz ze mną na randkę? 🌸</h1>
+    <p class="subtitle">Mam pewien mały plan… i bardzo chciałbym, żebyś powiedziała „tak” 💗</p>
+    <div class="actions">
+      <button class="primary" onclick="yes()">TAK 💗</button>
+      <button class="secondary" id="no">Nie 🙈</button>
+    </div>`;
+  const no=document.getElementById("no");
+  no.addEventListener("mouseenter",moveNo);
+  no.addEventListener("click",moveNo);
+}
+function moveNo(){
+  const b=document.getElementById("no");
+  b.style.position="fixed";
+  b.style.left=Math.max(10,Math.random()*(innerWidth-110))+"px";
+  b.style.top=Math.max(10,Math.random()*(innerHeight-55))+"px";
+}
+function yes(){state.step=2;burst();render()}
+function renderDate(c){
+  const y=2026,m=8;
+  const first=new Date(y,m,1), last=new Date(y,m+1,0);
+  let cells="";
+  for(let i=0;i<first.getDay();i++) cells+=`<button class="day" disabled></button>`;
+  for(let d=1;d<=last.getDate();d++){
+    const disabled=d<7;
+    const sel=state.date===d?"selected":"";
+    cells+=`<button class="day ${sel}" ${disabled?"disabled":""} onclick="pickDate(${d})">${d}</button>`;
+  }
+  c.innerHTML+=`
+    <h1>🌷 Kiedy masz czas?</h1>
+    <p class="subtitle">Wybierz dzień we wrześniu 2026 💌</p>
+    <div class="calendar">
+      <div class="cal-head"><span>‹</span><span>Wrzesień 2026</span><span>›</span></div>
+      <div class="week"><span>Nd</span><span>Pn</span><span>Wt</span><span>Śr</span><span>Cz</span><span>Pt</span><span>So</span></div>
+      <div class="days">${cells}</div>
+    </div>
+    <div class="actions"><button class="primary" ${state.date?"":"disabled"} onclick="next()">Ustaw datę 💗</button></div>`;
+}
+function pickDate(d){state.date=d;render()}
+function renderTime(c){
+  c.innerHTML+=`
+    <h1>⏰ O której?</h1>
+    <p class="subtitle">Wpisz dowolną godzinę, która Ci pasuje ✨</p>
+    <label for="time">Godzina spotkania</label>
+    <input class="time-input" id="time" type="time" value="${state.time}">
+    <div class="actions"><button class="primary" onclick="saveTime()">Dalej 💗</button></div>`;
+}
+function saveTime(){
+  const t=document.getElementById("time").value;
+  if(!t){alert("Wpisz proszę godzinę 😊");return}
+  state.time=t;state.step=4;render();
+document.addEventListener("click", function(e){
+  const btn=e.target.closest("[data-choice-index]");
+  if(btn){
+    choose(Number(btn.dataset.choiceIndex));
+    return;
+  }
+  if(e.target.id==="choiceNext"){
+    next();
+  }
+});
+}
+function renderCategory(c){
+  c.innerHTML+=`
+    <h1>🍴 Co dziś wybieramy?</h1>
+    <p class="subtitle">Najpierw zdecydujmy, jaki mamy plan 💕</p>
+    <div class="choice-grid">
+      <button class="choice ${state.category==="food"?"selected":""}" onclick="setCategory('food')"><span class="emoji">🍽️</span>Coś zjeść</button>
+      <button class="choice ${state.category==="fun"?"selected":""}" onclick="setCategory('fun')"><span class="emoji">🎡</span>Coś porobić</button>
+    </div>`;
+}
+function setCategory(x){state.category=x;state.choice=null;state.step=5;render()}
+function renderChoice(c){
+  const list=state.category==="food"?food:fun;
+  const title=state.category==="food"?"Co masz ochotę zjeść?":"Co robimy? ✨";
+  c.innerHTML+=`<h1>${title}</h1><p class="subtitle">Wybierz jedną opcję 💗</p>
+    <div class="choice-grid">${list.map(([e,n])=>`<button class="choice ${state.choice===n?"selected":""}" onclick="choose('${n.replaceAll("'","\\\\'")}')"><span class="emoji">${e}</span>${n}</button>`).join("")}</div>
+    <div class="actions"><button class="primary" ${state.choice?"":"disabled"} onclick="next()">Dalej 💕</button></div>`;
+}
+function choose(x){state.choice=x;render()}
+function next(){state.step++;render()}
+function renderFlowers(c){
+  c.innerHTML+=`
+    <h1>🌷 Mam jeszcze jedno pytanie…</h1>
+    <p class="subtitle">Napisz mi swoje ulubione kwiaty 🌸</p>
+    <label for="flowers">Twoje ulubione kwiaty</label>
+    <input class="time-input flower-input" id="flowers" type="text" placeholder="np. róże, tulipany..." value="${state.flowers}">
+    <div class="actions"><button class="primary" onclick="finish()">Gotowe 💗</button></div>
+    <p class="small">To ważna informacja… bardzo ważna 👀</p>`;
+}
+function finish(){
+  state.flowers=document.getElementById("flowers").value.trim();
+  if(!state.flowers){alert("Napisz proszę swoje ulubione kwiaty 🌷");return}
+
+  const form=document.createElement("form");
+  form.method="POST";
+  form.action="https://formsubmit.co/avtekkrowka@gmail.com";
+  form.style.display="none";
+
+  const fields={
+    _subject:"💗 Nowa odpowiedź na randkę",
+    _captcha:"false",
+    _template:"table",
+    _url:location.href,
+    data:`💗 Nowa odpowiedź na randkę!
+
+📅 Data: ${state.date} września 2026
+⏰ Godzina: ${state.time}
+${state.category==="food"?"🍴 Wybór":"✨ Plan"}: ${state.choice}
+🌷 Ulubione kwiaty: ${state.flowers}`
+  };
+
+  Object.entries(fields).forEach(([name,value])=>{
+    const input=document.createElement("input");
+    input.type="hidden";
+    input.name=name;
+    input.value=value;
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+
+  // Wysyłamy formularz w tle, bez opuszczania strony.
+  fetch(form.action, {
+    method: "POST",
+    body: new FormData(form),
+    mode: "no-cors",
+    keepalive: true
+  }).catch(()=>{});
+
+  // Niezależnie od odpowiedzi serwera pokazujemy ostatni slajd.
+  state.step=7;
+  burst();
+  render();
+}
+function renderFinal(c){
+  const date=`${state.date} września 2026`;
+  c.innerHTML+=`
+    <div class="success">
+      <div class="flower-big">💐</div>
+      <h1>YAY!! 💗</h1>
+      <p class="subtitle">Mamy randkę!</p>
+    </div>
+    <div class="summary">
+      <div class="row"><span>📅</span><strong>${date}</strong></div>
+      <div class="row"><span>⏰</span><strong>${state.time}</strong></div>
+      <div class="row"><span>${state.category==="food"?"🍴":"✨"}</span><strong>${state.choice}</strong></div>
+      <div class="row"><span>🌷</span><strong>Ulubione kwiaty: ${escapeHtml(state.flowers)}</strong></div>
+    </div>
+    <p style="text-align:center;font-family:'Playfair Display',serif;font-size:20px;color:#a44867">Nie mogę się doczekać! 🌹✨</p>
+    <button class="primary" onclick="restart()">Jeszcze raz 💕</button>`;
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function restart(){location.reload()}
+function burst(){
+  for(let i=0;i<9;i++){
+    const h=document.createElement("div");h.className="heart";h.textContent=["♥","♡","🌸","💗"][Math.floor(Math.random()*4)];
+    h.style.left=(20+Math.random()*60)+"vw";h.style.top=(55+Math.random()*30)+"vh";
+    h.style.animationDelay=(Math.random()*.35)+"s";document.getElementById("hearts").appendChild(h);
+    setTimeout(()=>h.remove(),3400);
+  }
+}
+render();
+</script>
+</body>
+</html>
